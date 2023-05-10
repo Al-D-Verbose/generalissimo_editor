@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
+</head>
+<script>
+  const config = {
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Credentials': true,
+      'Authorization': 'Basic Y2FyZHRlc3Q6YsO8Y2tlbG5taXRiaXNp'
+    }
+  };
+  window.deleteModal = function (modal) {
+    console.log(modal);
+    window.setInteractive = true;
+    return modal.remove();
+  }
+  window.createOptions = function (opts, cid = undefined) {
+    console.log(opts);
+    let input = '<select id="' + (cid ? cid : 'newVal') + '">';
+    opts.forEach(option => {
+      input += '<option value="' + option.value + '">' + option.choice + '</option>';
+    });
+    return input += '</select>';
+  }
+  window.createModal = function (modalProps) {
+    inputField = modalProps.choice ? createOptions(modalProps.choices) : '<input type="text" id="newVal" value="' + modalProps.currentVal + '">';
+    $('body').append('<div class="modal" data-backdrop="false" id="' + modalProps.id + '" tabindex="-1" role="dialog"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">' + modalProps.title + '</h5><button type="button" class="close" data-dismiss="' + modalProps.id + '" aria-label="Close" onclick="window.deleteModal(currentModal)"><span aria-hidden="true">&times;</span></button></div><div class="modal-body">' + inputField + '</div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="' + modalProps.id + '" onclick="window.deleteModal(currentModal)">Close</button><button type="button" class="btn btn-primary" onclick="updateCardByModal(currentModal)">Save changes</button></div></div></div></div>');
+    return $('#' + modalProps.id);
+  };
+  window.createCardModal = function () {
+    let input = '<label for="createCardType">Kartentyp</label><span aria-hidden="true">&nbsp;</span>';
+    input += createOptions([
+      { value: "STRUCTURE", choice: "Gebäude" },
+      { value: "INFANTRY", choice: "Infanterie" },
+      { value: "VEHICLE", choice: "Fahrzeug" },
+      { value: "PLANE", choice: "Flugzeug" },
+      { value: "COMMAND", choice: "Befehl" },
+      { value: "SPY", choice: "Spionage" },
+      { value: "RESEARCH", choice: "Forschung" }
+    ], "createCardType");
+    input += '<br><label for="createCardSummonCostType">Beschwörungskostentyp</label><span aria-hidden="true">&nbsp;</span>';
+    input += createOptions([
+      { value: "GOLD", choice: "Cash" },
+      { value: "OIL", choice: "Treibstoff" },
+      { value: "AMMO", choice: "Munition" },
+      { value: "SPY", choice: "Spionage" },
+      { value: "RESEARCH", choice: "Forschung" }
+    ], "createCardSummonCostType");
+    input += '<br><label for="createCardTurnCostType">Rundenkostentyp</label><span aria-hidden="true">&nbsp;</span>';
+    input += createOptions([
+      { value: "GOLD", choice: "Cash" },
+      { value: "OIL", choice: "Treibstoff" },
+      { value: "AMMO", choice: "Munition" },
+      { value: "SPY", choice: "Spionage" },
+      { value: "RESEARCH", choice: "Forschung" }
+    ], "createCardTurnCostType");
+    input += '<br><label for="createCardSummonActionType">Beschwörungstyp</label><span aria-hidden="true">&nbsp;</span>';
+    input += createOptions([
+      { value: "INSTANT", choice: "Sofort" },
+      { value: "DELAYED", choice: "Normal" }
+    ], "createCardSummonActionType");
+    input += '<br><label for="createCardFactionType">Fraktion</label><span aria-hidden="true">&nbsp;</span>';
+    input += createOptions(
+      [
+        { value: "THIRD_REICH", choice: "Deutsches Reich" },
+        { value: "UNITED_KINGDOM", choice: "Großbritannien" },
+        { value: "FRANCE", choice: "Frankreich" },
+        { value: "UDSSR", choice: "Sowjetunion" },
+        { value: "ITALY", choice: "Italien" },
+        { value: "JAPAN", choice: "Japan" },
+        { value: "FINLAND", choice: "Finnland" },
+        { value: "UNITED_STATES", choice: "USA" },
+        { value: "NEUTRAL", choice: "Neutral" }
+      ], "createCardFactionType");
+    input += '<br><label for="createCardName">Name</label><span aria-hidden="true">&nbsp;</span>';
+    input += '<input type="text" id="createCardName" value="Neue Karte">';
+    input += '<br><label for="createCardDesc">Beschreibung</label><span aria-hidden="true">&nbsp;</span>';
+    input += '<input type="text" id="createCardDesc" value="Beschreibung">';
+    input += '<br><label for="createCardSummonCost">Beschwörungskosten</label><span aria-hidden="true">&nbsp;</span>';
+    input += '<input type="number" id="createCardSummonCost" value="0">';
+    input += '<br><label for="createCardTurnCost">Unterhalt</label><span aria-hidden="true">&nbsp;</span>';
+    input += '<input type="number" id="createCardTurnCost" value="0">';
+    input += '<br><label for="createCardMinRange">Minimale Beschw.reichweite</label><span aria-hidden="true">&nbsp;</span>';
+    input += '<input type="number" id="createCardMinRange" value="0">';
+    input += '<br><label for=createCardMaxRange>Maximale Beschw.reichweite</label><span aria-hidden="true">&nbsp;</span>';
+    input += '<input type="number" id="createCardMaxRange" value="0">';
+    input += '<br><label for="createCardHealth">Hitpoints</label><span aria-hidden="true">&nbsp;</span>';
+    input += '<input type="number" id="createCardHealth" value="1" min="1">';
+    input += '<br><label for="createCardArmor">Rüstung</label><span aria-hidden="true">&nbsp;</span>';
+    input += '<input type="number" id="createCardArmor" value="0">';
+    input += '<br><label for="createCardMovementRange">Bewegungsreichweite</label><span aria-hidden="true">&nbsp;</span>';
+    input += '<input type="number" id="createCardMovementRange" value="0" min="0">';
+    input += '<br><label for="createCardLos">Sichtweite</label><span aria-hidden="true">&nbsp;</span>';
+    input += '<input type="number" id="createCardLos" value="0" min="0">';
+    $('body').append('<div class="modal" data-backdrop="false" id="createCardModal" tabindex="-1" role="dialog"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Karte erstellen</h5><button type="button" class="close" data-dismiss="createCardModal" aria-label="Close" onclick="deleteCreateCardModal()"><span aria-hidden="true">&times;</span></button></div><div class="modal-body">' + input + '</div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="createCardModal" onclick="deleteCreateCardModal()">Close</button><button type="button" class="btn btn-primary" onclick="createCard()">Save changes</button></div></div></div></div>');
+    $('#createCardModal').modal('toggle');
+  }
+  window.deleteCreateCardModal = function () {
+    $('#createCardModal').remove();
+  }
+  window.createCard = function () {
+    let card = {
+      armor: $('#createCardArmor').val(),
+      description: $('#createCardDesc').val(),
+      faction: $('#createCardFactionType').val(),
+      globalFaction: ['THIRD_REICH', 'ITALY', 'FINLAND', 'JAPAN'].indexOf($('#createCardFactionType').val()) >= 0 ? 'AXIS' : 'ALLIANCE',
+      health: $('#createCardHealth').val(),
+      lineOfSight: $('#createCardLos').val(),
+      maxRange: $('#createCardMaxRange').val(),
+      minRange: $('#createCardMinRange').val(),
+      movementRange: $('#createCardMovementRange').val(),
+      name: $('#createCardName').val(),
+      properties: [], //TODO
+      actions: [],
+      summonActionCost: $('#createCardSummonActionType').val(),
+      summonCost: $('#createCardSummonCost').val(),
+      summonCostType: $('#createCardSummonCostType').val(),
+      turnCost: $('#createCardTurnCost').val(),
+      turnCostType: $('#createCardTurnCostType').val(),
+      type: $('#createCardType').val(),
+      image: "" // TODO ?
+    }
+    console.log(card);
+    axios.post('http://localhost:8888/api/cards/new', card, config).then(response => { console.log(response); }).catch(error => { console.error(error) });
+    deleteCreateCardModal();
+    window.refreshEditor();
+  }
+  window.updateCard = function () {
+    let card = window.currentCard;
+    let newVal = $('#newVal').val();
+    /*console.log(newVal);
+    console.log(card);
+    console.log(window.valToEdit);
+    console.log(window.index);
+    console.log(card.actions[window.index]);
+    console.log(window.indexedEdit);
+    console.log(card.actions[window.index].effects);*/
+    //window.indexedEdit ? card[window.valToEdit][window.index][window.indexedVal] = newVal : card[window.valToEdit] = newVal;
+    if (window.indexedEdit) {
+      window.indexedEdit == 'ACTION' ? card.actions[window.index][window.valToEdit] = newVal : card.actions[window.index][window.valToEdit][window.effectIndex] = newVal;
+      //window.indexedEdit = undefined;
+    }
+    else {
+      card[window.valToEdit] = newVal;
+    }
+    var canvas = document.getElementsByTagName("canvas")[0];
+    console.log(canvas);
+    //card.image = canvas.toDataURL("image/png", 1);
+    //canvas.toBlob(blob => card.image = blob);
+    card.image = canvas.toDataURL("image/png", 1);
+    console.log("---IMG---")
+    console.log(card.image);
+    //canvas.toBlob((bobTheBlob) => {console.log(bobTheBlob)});
+    testImg = document.getElementById("testimg");
+    testImg.src = card.image;
+    axios.put('http://localhost:8888/api/cards/update', card, config).then(response => {
+      console.log(response);
+      //window.changeCard = response.data;
+      if (window.indexedEdit) {
+        window.indexedEdit == 'ACTION' ? window.lastNewVal = response.data[window.index][window.valToEdit] : window.lastNewVal = card.actions[window.index][window.valToEdit][window.effectIndex];
+        window.indexedEdit = undefined;
+      }
+      else {
+        window.lastNewVal = response.data[window.valToEdit];
+      }
+      /*var canvas = document.getElementsByTagName("canvas")[0];
+      console.log(canvas);
+      card.image = canvas.toDataURL("image/png", 1);
+      canvas.toBlob((bobTheBlob) => { console.log(bobTheBlob) });
+      testImg = document.getElementById("testimg");
+      testImg.src = card.image;*/
+      testImg.src = response.data.imgDataUrl;
+    }).catch(error => { console.error(error); });
+    //window.location = window.location;
+    window.lastEdit = card;
+    window.refreshEditor();
+  };
+  window.selectCard = function (changeCard) {
+    window.currentCard = changeCard;
+    window.changeCard = changeCard;
+  };
+  window.updateCardByModal = function (modal) {
+    window.updateCard();
+    window.deleteModal(modal);
+  };
+  window.deleteCard = function () {
+    if (window.currentCard) {
+      /* const headers = { 
+         'Content-Type': 'application/json',
+         'Access-Control-Allow-Credentials': true,
+         'Authorization': 'Basic Y2FyZHRlc3Q6YsO8Y2tlbG5taXRiaXNp'
+         };
+       const params = {
+         'number': window.currentCard
+       };
+       const config = {
+       headers: headers,
+       params: {},
+       data: params
+       };*/
+      axios.post('http://localhost:8888/api/cards/delete', { 'number': window.currentCard }, config);
+    }
+  };
+</script>
+
+<body>
+  <button type="button" onclick="createCardModal()">Neu</button>
+  <button type="button" onclick="deleteCard()">Löschen</button>
+  <img id="testimg" width="100" height="100" />
+</body>
+
+</html>
